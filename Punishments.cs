@@ -54,7 +54,7 @@ namespace BBRModules
         #region Commands
 
         [CommandCallback("ban", Description = "Ban a player permanently.", ConsoleCommand = true, Permissions = new[] { "Punishments.Ban" })]
-        public void BanCommand(RunnerPlayer commandSource, RunnerPlayer target, string? reason = "No reason provided.")
+        public void BanCommand(Context ctx, RunnerPlayer target, string? reason = "No reason provided.")
         {
             var punishment = new Punishment(target.SteamID.ToString(), PunishmentType.Ban, -1, commandSource.SteamID.ToString(), reason);
             punishment.Punish();
@@ -70,7 +70,7 @@ namespace BBRModules
         }
 
         [CommandCallback("tempban", Description = "Ban a player temporarily.", ConsoleCommand = true, Permissions = new[] { "Punishments.TempBan" })]
-        public void TempBanCommand(RunnerPlayer commandSource, RunnerPlayer target, string timestring, string? reason = "No reason provided.")
+        public void TempBanCommand(Context ctx, RunnerPlayer target, string timestring, string? reason = "No reason provided.")
         {
             var seconds = PunishmentsUtils.GetTimestringAsSeconds(timestring);
             var punishment = new Punishment(target.SteamID.ToString(), PunishmentType.Ban, seconds, commandSource.SteamID.ToString(), reason);
