@@ -1,23 +1,19 @@
+using BattleBitAPI.Features;
 using BBRAPIModules;
 using Commands;
 using Permissions;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Data.Sqlite;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using BattleBitAPI.Features;
+using System.Threading.Tasks;
 
-namespace BBRModules
-{
+namespace BBRModules {
     [Module("A module with punishments such as ban and mute.", "1.0.0")]
     [RequireModule(typeof(GranularPermissions))]
     [RequireModule(typeof(CommandHandler))]
-    public class Punishments : BattleBitModule
-    {
+    public class Punishments : BattleBitModule {
         #region Data files
         public static PunishmentsConfiguration Configuration { get; set; }
         public static PunishmentsDatabase Database { get; set; }
@@ -32,13 +28,11 @@ namespace BBRModules
         public CommandHandler CommandHandler { get; set; } = null!;
         #endregion
 
-        public override void OnModulesLoaded()
-        {
+        public override void OnModulesLoaded() {
             CommandHandler.Register(this);
         }
 
-        public override async Task OnConnected()
-        {
+        public override async Task OnConnected() {
             Database = new();
             await Database.Open();
             await Database.CreatePunishmentsTable();
@@ -46,16 +40,14 @@ namespace BBRModules
             Connection = Database.GetConnection();
         }
 
-        public override async Task OnDisconnected()
-        {
+        public override async Task OnDisconnected() {
             await Database.Close();
         }
 
         #region Commands
 
         [CommandCallback("ban", Description = "Ban a player permanently.", ConsoleCommand = true, Permissions = new[] { "Punishments.Ban" })]
-        public void BanCommand(Context ctx, RunnerPlayer target, string? reason = "No reason provided.")
-        {
+        public void BanCommand(Context ctx, RunnerPlayer target, string? reason = "No reason provided.") {
             var punishment = new Punishment(target.SteamID.ToString(), PunishmentType.Ban, -1, commandSource.SteamID.ToString(), reason);
             punishment.Punish();
 
@@ -70,8 +62,7 @@ namespace BBRModules
         }
 
         [CommandCallback("tempban", Description = "Ban a player temporarily.", ConsoleCommand = true, Permissions = new[] { "Punishments.TempBan" })]
-        public void TempBanCommand(Context ctx, RunnerPlayer target, string timestring, string? reason = "No reason provided.")
-        {
+        public void TempBanCommand(Context ctx, RunnerPlayer target, string timestring, string? reason = "No reason provided.") {
             var seconds = PunishmentsUtils.GetTimestringAsSeconds(timestring);
             var punishment = new Punishment(target.SteamID.ToString(), PunishmentType.Ban, seconds, commandSource.SteamID.ToString(), reason);
             punishment.Punish();
@@ -90,16 +81,14 @@ namespace BBRModules
         #endregion
     }
 
-    public class PunishmentsConfiguration : ModuleConfiguration
-    {
+    public class PunishmentsConfiguration : ModuleConfiguration {
         public string ServerName { get; set; } = "YourServerName";
         public string AppealMessage { get; set; } = "You may appeal at some.link.com!";
         public string BanMessage { get; set; } = "You were banned from {#ffaaaa ServerName /}!\n\nExpires in: {#ffaaaa ExpireTime /}\nReason: {#ffaaaa Reason /}\n\n{#ffaaaa AppealMessage /}";
         public string MuteMessage { get; set; } = "You were muted!\nExpires: {#ffaaaa ExpireTime /}\nReason: {#ffaaaa Reason /}\n{ffaaaa AppealMessage /}";
     }
 
-    public class Punishment
-    {
+    public class Punishment {
         public string SteamId { get; set; }
         public PunishmentType PunishmentType { get; set; }
         public long PunishedDate { get; set; }
@@ -107,13 +96,11 @@ namespace BBRModules
         public string AdminId { get; set; }
         public string Reason { get; set; }
 
-        public Punishment(string steamId)
-        {
+        public Punishment(string steamId) {
             SteamId = steamId;
         }
 
-        public Punishment(string steamId, PunishmentType punishmentType, long punishedFor, string adminId, string reason)
-        {
+        public Punishment(string steamId, PunishmentType punishmentType, long punishedFor, string adminId, string reason) {
             SteamId = steamId;
             PunishmentType = punishmentType;
             PunishedDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -122,8 +109,7 @@ namespace BBRModules
             Reason = reason;
         }
 
-        public async Task PunishAsync()
-        {
+        public async Task PunishAsync() {
             var insert = Punishments.Connection.CreateCommand();
             insert.CommandText = @"INSERT OR IGNORE INTO punishments (steamId, punishment, punishedAt, punishedFor, punishedBy, reason) VALUES ($steamId, $punishment, $punishedAt, $punishedFor, $punishedBy, $reason)";
             insert.Parameters.AddWithValue("$steamId", SteamId);
@@ -135,8 +121,7 @@ namespace BBRModules
             await insert.ExecuteNonQueryAsync();
         }
 
-        public void Punish()
-        {
+        public void Punish() {
             var insert = Punishments.Connection.CreateCommand();
             insert.CommandText = @"INSERT OR IGNORE INTO punishments (steamId, punishment, punishedAt, punishedFor, punishedBy, reason) VALUES ($steamId, $punishment, $punishedAt, $punishedFor, $punishedBy, $reason)";
             insert.Parameters.AddWithValue("$steamId", SteamId);
@@ -148,15 +133,13 @@ namespace BBRModules
             insert.ExecuteNonQuery();
         }
 
-        public bool IsPunished(PunishmentType? punishmentType = null)
-        {
+        public bool IsPunished(PunishmentType? punishmentType = null) {
             var get = Punishments.Connection.CreateCommand();
             get.CommandText = punishmentType != null ? "SELECT * FROM punishments WHERE steamId = $steamId AND punishment = $punishment LIMIT 1" : "SELECT * FROM punishments WHERE steamId = $steamId LIMIT 1";
             get.Parameters.AddWithValue("$steamId", SteamId);
             get.Parameters.AddWithValue("$punishment", punishmentType);
-            
-            using (SqliteDataReader reader = get.ExecuteReader())
-            {
+
+            using (SqliteDataReader reader = get.ExecuteReader()) {
                 if (!reader.HasRows)
                     return false;
 
@@ -168,15 +151,13 @@ namespace BBRModules
             }
         }
 
-        public async Task<bool> IsPunishedAsync(PunishmentType? punishmentType = null)
-        {
+        public async Task<bool> IsPunishedAsync(PunishmentType? punishmentType = null) {
             var get = Punishments.Connection.CreateCommand();
             get.CommandText = punishmentType != null ? "SELECT * FROM punishments WHERE steamId = $steamId AND punishment = $punishment LIMIT 1" : "SELECT * FROM punishments WHERE steamId = $steamId LIMIT 1";
             get.Parameters.AddWithValue("$steamId", SteamId);
             get.Parameters.AddWithValue("$punishment", punishmentType);
 
-            using (SqliteDataReader reader = await get.ExecuteReaderAsync())
-            {
+            using (SqliteDataReader reader = await get.ExecuteReaderAsync()) {
                 if (!reader.HasRows)
                     return false;
 
@@ -188,15 +169,13 @@ namespace BBRModules
             }
         }
 
-        public void UnpunishIfReady(PunishmentType? punishmentType = null)
-        {
+        public void UnpunishIfReady(PunishmentType? punishmentType = null) {
             var get = Punishments.Connection.CreateCommand();
             get.CommandText = punishmentType != null ? "SELECT * FROM punishments WHERE steamId = $steamId AND punishment = $punishment LIMIT 1" : "SELECT * FROM punishments WHERE steamId = $steamId LIMIT 1";
             get.Parameters.AddWithValue("$steamId", SteamId);
             get.Parameters.AddWithValue("$punishment", punishmentType);
 
-            using (SqliteDataReader reader = get.ExecuteReader())
-            {
+            using (SqliteDataReader reader = get.ExecuteReader()) {
                 if (!reader.HasRows)
                     return;
 
@@ -204,8 +183,7 @@ namespace BBRModules
                 long punishedAt = reader.GetInt64(2);
                 long punishedFor = reader.GetInt64(3);
 
-                if (punishedFor != -1 && current - (punishedAt + punishedFor) < 0)
-                {
+                if (punishedFor != -1 && current - (punishedAt + punishedFor) < 0) {
                     var remove = Punishments.Connection.CreateCommand();
                     remove.CommandText = "DELETE * FROM punishments WHERE steamId=$steamId";
                     remove.Parameters.AddWithValue("$steamId", SteamId);
@@ -214,15 +192,13 @@ namespace BBRModules
             }
         }
 
-        public async Task UnpunishIfReadyAsync(PunishmentType? punishmentType = null)
-        {
+        public async Task UnpunishIfReadyAsync(PunishmentType? punishmentType = null) {
             var get = Punishments.Connection.CreateCommand();
             get.CommandText = punishmentType != null ? "SELECT * FROM punishments WHERE steamId = $steamId AND punishment = $punishment LIMIT 1" : "SELECT * FROM punishments WHERE steamId = $steamId LIMIT 1";
             get.Parameters.AddWithValue("$steamId", SteamId);
             get.Parameters.AddWithValue("$punishment", punishmentType);
 
-            using (SqliteDataReader reader = await get.ExecuteReaderAsync())
-            {
+            using (SqliteDataReader reader = await get.ExecuteReaderAsync()) {
                 if (!reader.HasRows)
                     return;
 
@@ -230,8 +206,7 @@ namespace BBRModules
                 long punishedAt = reader.GetInt64(2);
                 long punishedFor = reader.GetInt64(3);
 
-                if (punishedFor != -1 && current - (punishedAt + punishedFor) < 0)
-                {
+                if (punishedFor != -1 && current - (punishedAt + punishedFor) < 0) {
                     var remove = Punishments.Connection.CreateCommand();
                     remove.CommandText = "DELETE * FROM punishments WHERE steamId=$steamId";
                     remove.Parameters.AddWithValue("$steamId", SteamId);
@@ -240,8 +215,7 @@ namespace BBRModules
             }
         }
 
-        public void Unpunish(PunishmentType? punishmentType = null)
-        {
+        public void Unpunish(PunishmentType? punishmentType = null) {
             var remove = Punishments.Connection.CreateCommand();
             remove.CommandText = punishmentType == null ? "DELETE * FROM punishments WHERE steamId=$steamId" : "DELETE * FROM punishments WHERE steamId=$steamId AND punishment=$punishment";
             remove.Parameters.AddWithValue("$steamId", SteamId);
@@ -249,8 +223,7 @@ namespace BBRModules
             remove.ExecuteNonQuery();
         }
 
-        public async Task UnpunishAsync(PunishmentType? punishmentType = null)
-        {
+        public async Task UnpunishAsync(PunishmentType? punishmentType = null) {
             var remove = Punishments.Connection.CreateCommand();
             remove.CommandText = punishmentType == null ? "DELETE * FROM punishments WHERE steamId=$steamId" : "DELETE * FROM punishments WHERE steamId=$steamId AND punishment=$punishment";
             remove.Parameters.AddWithValue("$steamId", SteamId);
@@ -259,18 +232,15 @@ namespace BBRModules
         }
     }
 
-    public enum PunishmentType
-    {
+    public enum PunishmentType {
         Ban,
         Mute
     }
 
-    public class PunishmentsDatabase
-    {
+    public class PunishmentsDatabase {
         public static SqliteConnection Connection { get; private set; } = null!;
 
-        public PunishmentsDatabase()
-        {
+        public PunishmentsDatabase() {
             string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "data");
             string path = Path.Combine(directoryPath, "Punishments.db");
 
@@ -281,20 +251,17 @@ namespace BBRModules
                 File.Create(path);
         }
 
-        public async Task CreatePunishmentsTable()
-        {
+        public async Task CreatePunishmentsTable() {
             var cmd = Connection.CreateCommand();
             cmd.CommandText =
                 @"CREATE TABLE IF NOT EXISTS punishments (steamId TEXT PRIMARY KEY, punishment INT, punishedAt INT, punishedFor INT, punishedBy INT, reason TEXT)";
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task Open()
-        {
+        public async Task Open() {
             string path = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Punishments.db");
 
-            string connectionString = new SqliteConnectionStringBuilder()
-            {
+            string connectionString = new SqliteConnectionStringBuilder() {
                 Mode = SqliteOpenMode.ReadWriteCreate,
                 DataSource = path,
                 Cache = SqliteCacheMode.Shared
@@ -304,19 +271,16 @@ namespace BBRModules
             await Connection.OpenAsync();
         }
 
-        public async Task Close()
-        {
+        public async Task Close() {
             await Connection.CloseAsync();
         }
 
-        public SqliteConnection GetConnection()
-        {
+        public SqliteConnection GetConnection() {
             return Connection;
         }
     }
 
-    public class PunishmentsUtils
-    {
+    public class PunishmentsUtils {
         static Dictionary<string, int> lettersToSeconds = new Dictionary<string, int> {
             { "y", 31556952 },
             { "mo", 2629746 },
@@ -335,8 +299,7 @@ namespace BBRModules
             { "m", "minute" }
         };
 
-        public static string GetTimestringAsUnitResult(string timestring)
-        {
+        public static string GetTimestringAsUnitResult(string timestring) {
             string unitResult = "";
 
             bool isNumber = int.TryParse(timestring, out int secondsTime);
@@ -348,8 +311,7 @@ namespace BBRModules
             MatchCollection collection = Regex.Matches(timestring, "(\\d+)([A-Za-z]+)");
             int i = 0;
 
-            foreach (Match match in collection)
-            {
+            foreach (Match match in collection) {
                 valid = int.TryParse(match.Groups[1].Value, out int num);
                 string time = match.Groups[2].Value;
 
@@ -361,20 +323,16 @@ namespace BBRModules
 
                 bool result = lettersToUnit.TryGetValue(time, out string unit);
 
-                if (result)
-                {
+                if (result) {
                     if (num != 1)
                         unit += "s";
 
                     string beginning = "";
                     string end = "";
 
-                    if (collection.Count > i + 1)
-                    {
+                    if (collection.Count > i + 1) {
                         end += " ";
-                    }
-                    else
-                    {
+                    } else {
                         beginning = "and ";
                     }
 
@@ -387,8 +345,7 @@ namespace BBRModules
             return unitResult;
         }
 
-        public static int GetTimestringAsSeconds(string timestring)
-        {
+        public static int GetTimestringAsSeconds(string timestring) {
             bool valid = false;
             int total = 0;
 
@@ -397,8 +354,7 @@ namespace BBRModules
             if (isNumber)
                 return secondsTime;
 
-            foreach (Match match in Regex.Matches(timestring, "(\\d+)([A-Za-z]+)"))
-            {
+            foreach (Match match in Regex.Matches(timestring, "(\\d+)([A-Za-z]+)")) {
                 valid = int.TryParse(match.Groups[1].Value, out int num);
                 string time = match.Groups[2].Value;
 
@@ -415,19 +371,16 @@ namespace BBRModules
             return total;
         }
 
-        public static string GetSecondsAsTimeUnit(int seconds)
-        {
+        public static string GetSecondsAsTimeUnit(int seconds) {
             string timeunit = "Never";
 
-            if (seconds != -1)
-            {
+            if (seconds != -1) {
                 timeunit = "";
 
                 int remaining = seconds;
                 int quantity = 0;
 
-                for (int i = 0; i < lettersToSeconds.Count; i++)
-                {
+                for (int i = 0; i < lettersToSeconds.Count; i++) {
                     KeyValuePair<string, int> pair = lettersToSeconds.ElementAt(i);
 
                     if (remaining == 0)
@@ -436,8 +389,7 @@ namespace BBRModules
                     if (pair.Value > remaining)
                         continue;
 
-                    if (remaining / pair.Value >= 1)
-                    {
+                    if (remaining / pair.Value >= 1) {
                         quantity = (int)Math.Floor((decimal)remaining / pair.Value);
                         remaining -= quantity * pair.Value;
                     }

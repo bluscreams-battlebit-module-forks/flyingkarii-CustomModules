@@ -10,8 +10,7 @@ namespace PermissionsManager;
 [RequireModule(typeof(CommandHandler))]
 [RequireModule(typeof(GranularPermissions))]
 [Module("Provide commands for managing GranularPermissions", "1.0.0")]
-public class GranularPermissionsCommands : BattleBitModule
-{
+public class GranularPermissionsCommands : BattleBitModule {
     [ModuleReference]
     public GranularPermissions GranularPermissions { get; set; } = null!;
     [ModuleReference]
@@ -19,24 +18,21 @@ public class GranularPermissionsCommands : BattleBitModule
 
     public GranularPermissionsCommandsConfiguration Configuration { get; set; } = null!;
 
-    public override void OnModulesLoaded()
-    {
+    public override void OnModulesLoaded() {
         this.CommandHandler.Register(this);
     }
 
     [CommandCallback("addplayerperm", Description = "Adds a permission to a player", Permissions = new[] { "GranularPermissions.AddPlayerPerm" })]
-    public void AddPermissionCommand(Context ctx, RunnerPlayer player, string permission)
-    {
+    public void AddPermissionCommand(Context ctx, RunnerPlayer player, string permission) {
         this.GranularPermissions.AddPlayerPermission(player.SteamID, permission);
 
         ctx.Reply($"Added permission {permission} to {player.Name}");
-        
+
         this.GranularPermissions.Save();
     }
 
     [CommandCallback("removeplayerperm", Description = "Removes a permission from a player", Permissions = new[] { "GranularPermissions.RemovePlayerPerm" })]
-    public void RemovePermissionCommand(Context ctx, RunnerPlayer player, string permission)
-    {
+    public void RemovePermissionCommand(Context ctx, RunnerPlayer player, string permission) {
         this.GranularPermissions.RemovePlayerPermission(player.SteamID, permission);
 
         ctx.Reply($"Removed permission {permission} from {player.Name}");
@@ -45,15 +41,12 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("clearplayerperms", Description = "Clears all permissions and groups from a player", Permissions = new[] { "GranularPermissions.ClearPlayerPerms" })]
-    public void ClearPermissionCommand(Context ctx, RunnerPlayer player)
-    {
-        foreach (string group in this.GranularPermissions.GetPlayerGroups(player.SteamID))
-        {
+    public void ClearPermissionCommand(Context ctx, RunnerPlayer player) {
+        foreach (string group in this.GranularPermissions.GetPlayerGroups(player.SteamID)) {
             this.GranularPermissions.RemovePlayerGroup(player.SteamID, group);
         }
 
-        foreach (string permission in this.GranularPermissions.GetPlayerPermissions(player.SteamID))
-        {
+        foreach (string permission in this.GranularPermissions.GetPlayerPermissions(player.SteamID)) {
             this.GranularPermissions.RemovePlayerPermission(player.SteamID, permission);
         }
 
@@ -63,10 +56,8 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("listplayerperms", Description = "Lists player permissions", Permissions = new[] { "GranularPermissions.ListPlayerPerms" })]
-    public void ListPermissionCommand(Context ctx, RunnerPlayer targetPlayer, int page = 1)
-    {
-        if (page < 1)
-        {
+    public void ListPermissionCommand(Context ctx, RunnerPlayer targetPlayer, int page = 1) {
+        if (page < 1) {
             page = 1;
         }
 
@@ -78,16 +69,13 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("addplayergroup", Description = "Adds a group to a player", Permissions = new[] { "GranularPermissions.AddPlayerGroup" })]
-    public void AddGroupCommand(Context ctx, RunnerPlayer player, string group)
-    {
-        if (this.GranularPermissions.GetPlayerGroups(player.SteamID).Contains(group))
-        {
+    public void AddGroupCommand(Context ctx, RunnerPlayer player, string group) {
+        if (this.GranularPermissions.GetPlayerGroups(player.SteamID).Contains(group)) {
             ctx.Reply($"{player.Name} already has group {group}");
             return;
         }
 
-        if (!this.GranularPermissions.GetGroups().Contains(group))
-        {
+        if (!this.GranularPermissions.GetGroups().Contains(group)) {
             ctx.Reply($"Group {group} does not exist");
             return;
         }
@@ -100,10 +88,8 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("removeplayergroup", Description = "Removes a group from a player", Permissions = new[] { "GranularPermissions.RemovePlayerGroup" })]
-    public void RemoveGroupCommand(Context ctx, RunnerPlayer player, string group)
-    {
-        if (!this.GranularPermissions.GetPlayerGroups(player.SteamID).Contains(group))
-        {
+    public void RemoveGroupCommand(Context ctx, RunnerPlayer player, string group) {
+        if (!this.GranularPermissions.GetPlayerGroups(player.SteamID).Contains(group)) {
             ctx.Reply($"{player.Name} does not have group {group}");
             return;
         }
@@ -116,10 +102,8 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("clearplayergroups", Description = "Clears all groups from a player", Permissions = new[] { "GranularPermissions.ClearPlayerGroups" })]
-    public void ClearGroupCommand(Context ctx, RunnerPlayer player)
-    {
-        foreach (string group in this.GranularPermissions.GetPlayerGroups(player.SteamID))
-        {
+    public void ClearGroupCommand(Context ctx, RunnerPlayer player) {
+        foreach (string group in this.GranularPermissions.GetPlayerGroups(player.SteamID)) {
             this.GranularPermissions.RemovePlayerGroup(player.SteamID, group);
         }
 
@@ -129,10 +113,8 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("listplayergroups", Description = "Lists player groups", Permissions = new[] { "GranularPermissions.ListPlayerGroups" })]
-    public void ListGroupCommand(Context ctx, RunnerPlayer targetPlayer, int page = 1)
-    {
-        if (page < 1)
-        {
+    public void ListGroupCommand(Context ctx, RunnerPlayer targetPlayer, int page = 1) {
+        if (page < 1) {
             page = 1;
         }
 
@@ -146,10 +128,8 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("addgroup", Description = "Adds a group", Permissions = new[] { "GranularPermissions.AddGroup" })]
-    public void AddGroupCommand(Context ctx, string group)
-    {
-        if (this.GranularPermissions.GetGroups().Contains(group))
-        {
+    public void AddGroupCommand(Context ctx, string group) {
+        if (this.GranularPermissions.GetGroups().Contains(group)) {
             ctx.Reply($"Group {group} already exists");
             return;
         }
@@ -162,10 +142,8 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("removegroup", Description = "Removes a group", Permissions = new[] { "GranularPermissions.RemoveGroup" })]
-    public void RemoveGroupCommand(Context ctx, string group)
-    {
-        if (!this.GranularPermissions.GetGroups().Contains(group))
-        {
+    public void RemoveGroupCommand(Context ctx, string group) {
+        if (!this.GranularPermissions.GetGroups().Contains(group)) {
             ctx.Reply($"Group {group} does not exist");
             return;
         }
@@ -178,10 +156,8 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("listgroups", Description = "Lists groups", Permissions = new[] { "GranularPermissions.ListGroups" })]
-    public void ListGroupCommand(Context ctx, int page = 1)
-    {
-        if (page < 1)
-        {
+    public void ListGroupCommand(Context ctx, int page = 1) {
+        if (page < 1) {
             page = 1;
         }
 
@@ -195,16 +171,13 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("addgroupperm", Description = "Adds a permission to a group", Permissions = new[] { "GranularPermissions.AddGroupPerm" })]
-    public void AddGroupPermissionCommand(Context ctx, string group, string permission)
-    {
-        if (!this.GranularPermissions.GetGroups().Contains(group))
-        {
+    public void AddGroupPermissionCommand(Context ctx, string group, string permission) {
+        if (!this.GranularPermissions.GetGroups().Contains(group)) {
             ctx.Reply($"Group {group} does not exist");
             return;
         }
 
-        if (this.GranularPermissions.GetGroupPermissions(group).Contains(permission))
-        {
+        if (this.GranularPermissions.GetGroupPermissions(group).Contains(permission)) {
             ctx.Reply($"{group} already has permission {permission}");
             return;
         }
@@ -217,16 +190,13 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("removegroupperm", Description = "Removes a permission from a group", Permissions = new[] { "GranularPermissions.RemoveGroupPerm" })]
-    public void RemoveGroupPermissionCommand(Context ctx, string group, string permission)
-    {
-        if (!this.GranularPermissions.GetGroups().Contains(group))
-        {
+    public void RemoveGroupPermissionCommand(Context ctx, string group, string permission) {
+        if (!this.GranularPermissions.GetGroups().Contains(group)) {
             ctx.Reply($"Group {group} does not exist");
             return;
         }
 
-        if (!this.GranularPermissions.GetGroupPermissions(group).Contains(permission))
-        {
+        if (!this.GranularPermissions.GetGroupPermissions(group).Contains(permission)) {
             ctx.Reply($"{group} does not have permission {permission}");
             return;
         }
@@ -239,16 +209,13 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("cleargroupperms", Description = "Clears all permissions from a group", Permissions = new[] { "GranularPermissions.ClearGroupPerms" })]
-    public void ClearGroupPermissionCommand(Context ctx, string group)
-    {
-        if (!this.GranularPermissions.GetGroups().Contains(group))
-        {
+    public void ClearGroupPermissionCommand(Context ctx, string group) {
+        if (!this.GranularPermissions.GetGroups().Contains(group)) {
             ctx.Reply($"Group {group} does not exist");
             return;
         }
 
-        foreach (string permission in this.GranularPermissions.GetGroupPermissions(group))
-        {
+        foreach (string permission in this.GranularPermissions.GetGroupPermissions(group)) {
             this.GranularPermissions.RemoveGroupPermission(group, permission);
         }
 
@@ -258,16 +225,13 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 
     [CommandCallback("listgroupperms", Description = "Lists group permissions", Permissions = new[] { "GranularPermissions.ListGroupPerms" })]
-    public void ListGroupPermissionCommand(Context ctx, string group, int page = 1)
-    {
-        if (!this.GranularPermissions.GetGroups().Contains(group))
-        {
+    public void ListGroupPermissionCommand(Context ctx, string group, int page = 1) {
+        if (!this.GranularPermissions.GetGroups().Contains(group)) {
             ctx.Reply($"Group {group} does not exist");
             return;
         }
 
-        if (page < 1)
-        {
+        if (page < 1) {
             page = 1;
         }
 
@@ -281,7 +245,6 @@ public class GranularPermissionsCommands : BattleBitModule
     }
 }
 
-public class GranularPermissionsCommandsConfiguration : ModuleConfiguration
-{
+public class GranularPermissionsCommandsConfiguration : ModuleConfiguration {
     public int PermissionsPerPage { get; set; } = 6;
 }

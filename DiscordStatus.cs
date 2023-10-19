@@ -1,21 +1,18 @@
 ﻿// VERSION 1.3
 // MADE BY @SENTENNIAL
+using BattleBitAPI.Common;
+using BBRAPIModules;
+using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BattleBitAPI.Common;
-using BBRAPIModules;
-using Discord;
-using Discord.Rest;
-using Discord.WebSocket;
 
-namespace BattleBitAPI.Features
-{
+namespace BattleBitAPI.Features {
     [RequireModule(typeof(PlaceholderLib))]
     [Module("Connects each server to a Discord Bot, and updates the Discord Bot's status with the server's player-count and map information.", "1.3")]
-    public class DiscordStatus : BattleBitModule
-    {
+    public class DiscordStatus : BattleBitModule {
         public DiscordConfiguration Configuration { get; set; }
         private List<string> MessageQueue = new();
         private DiscordSocketClient discordClient;
@@ -23,10 +20,8 @@ namespace BattleBitAPI.Features
         private ITextChannel reportsChannel;
         private bool discordReady = false;
 
-        public override Task OnConnected()
-        {
-            if (string.IsNullOrEmpty(Configuration.DiscordBotToken))
-            {
+        public override Task OnConnected() {
+            if (string.IsNullOrEmpty(Configuration.DiscordBotToken)) {
                 Unload();
                 throw new Exception("API Key is not set. Please set it in the configuration file.");
             }
@@ -35,34 +30,27 @@ namespace BattleBitAPI.Features
             Task.Run(SendChatMessages).ContinueWith(t => Console.WriteLine($"Error sending chat messages {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
             return Task.CompletedTask;
         }
-        private async void UpdateTimer()
-        {
-            while (this.IsLoaded && this.Server.IsConnected)
-            {
+        private async void UpdateTimer() {
+            while (this.IsLoaded && this.Server.IsConnected) {
                 if (discordReady)
                     await updateDiscordStatus(getStatus());
                 await Task.Delay(10000);
             }
         }
 
-        private async void SendChatMessages()
-        {
-            while (this.IsLoaded && this.Server.IsConnected)
-            {
-                if (!discordReady)
-                {
+        private async void SendChatMessages() {
+            while (this.IsLoaded && this.Server.IsConnected) {
+                if (!discordReady) {
                     await Task.Delay(2000);
                     continue;
                 }
 
-                if (chatMessageChannel == null)
-                {
+                if (chatMessageChannel == null) {
                     Logger.Warn("!! CHAT MESSAGE CHANNEL ID IS INVALID !!");
                     break;
                 }
 
-                if (MessageQueue.Count == 0)
-                {
+                if (MessageQueue.Count == 0) {
                     continue;
                 }
 
@@ -74,13 +62,11 @@ namespace BattleBitAPI.Features
             }
         }
 
-        public override void OnModuleUnloading()
-        {
+        public override void OnModuleUnloading() {
             Task.Run(() => disconnectDiscord());
         }
 
-        public override async Task OnPlayerReported(RunnerPlayer from, RunnerPlayer to, ReportReason reason, string additional)
-        {
+        public override async Task OnPlayerReported(RunnerPlayer from, RunnerPlayer to, ReportReason reason, string additional) {
             if (!discordReady)
                 return;
 
@@ -90,8 +76,7 @@ namespace BattleBitAPI.Features
             await reportsChannel.SendMessageAsync($":smiling_imp: ``{from}`` reported ``{to}`` for {reason}!" + additional != string.Empty ? $"\nAdditional Info: {additional}" : string.Empty);
         }
 
-        public override async Task<bool> OnPlayerTypedMessage(RunnerPlayer player, ChatChannel channel, string msg)
-        {
+        public override async Task<bool> OnPlayerTypedMessage(RunnerPlayer player, ChatChannel channel, string msg) {
             string chatMessage = new PlaceholderLib(":speech_balloon: ``{name}`` ({channel}): ``{message}``")
                 .AddParam("name", player.Name)
                 .AddParam("channel", ToStringChatChannel(channel))
@@ -102,10 +87,8 @@ namespace BattleBitAPI.Features
             return true;
         }
 
-        private async Task connectDiscord()
-        {
-            var config = new DiscordSocketConfig
-            {
+        private async Task connectDiscord() {
+            var config = new DiscordSocketConfig {
                 GatewayIntents = GatewayIntents.AllUnprivileged
             };
             discordClient = new DiscordSocketClient(config);
@@ -118,52 +101,39 @@ namespace BattleBitAPI.Features
             reportsChannel = await discordClient.GetChannelAsync(reportsId) as ITextChannel;
         }
 
-        private string getStatus()
-        {
+        private string getStatus() {
             return "" + Server.CurrentPlayerCount + "/" + Server.MaxPlayerCount +
                 "(" + Server.InQueuePlayerCount + ") on " + Server.Map + " " + Server.Gamemode;
         }
 
-        private async Task disconnectDiscord()
-        {
+        private async Task disconnectDiscord() {
             discordReady = false;
-            try
-            {
+            try {
                 await discordClient.StopAsync();
-            }
-            catch (Exception)
-            {
+            } catch (Exception) {
 
             }
         }
 
-        private Task ReadyAsync()
-        {
+        private Task ReadyAsync() {
             discordReady = true;
             Task.Run(() => updateDiscordStatus(getStatus()));
             return Task.CompletedTask;
         }
 
-        private async Task updateDiscordStatus(string status)
-        {
-            if (discordReady == false)
-            {
+        private async Task updateDiscordStatus(string status) {
+            if (discordReady == false) {
                 return;
             }
-            try
-            {
+            try {
                 await discordClient.SetGameAsync(status);
-            }
-            catch (Exception)
-            {
+            } catch (Exception) {
 
             }
         }
 
-        private string ToStringChatChannel(ChatChannel channel)
-        {
-            switch (channel)
-            {
+        private string ToStringChatChannel(ChatChannel channel) {
+            switch (channel) {
                 case ChatChannel.AllChat:
                     return "All Chat";
                 case ChatChannel.TeamChat:
@@ -176,8 +146,7 @@ namespace BattleBitAPI.Features
         }
     }
 
-    public class DiscordConfiguration : ModuleConfiguration
-    {
+    public class DiscordConfiguration : ModuleConfiguration {
         public string DiscordBotToken { get; set; } = string.Empty;
         public int MaxMessageCount { get; set; } = 10;
         public ulong ChatChannelId { get; set; } = 0;

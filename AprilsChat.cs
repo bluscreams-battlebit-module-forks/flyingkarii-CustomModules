@@ -7,30 +7,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BBRModules
-{
+namespace BBRModules {
     [Module("A module that manages chat in a simpler way than ChatOverwrite.", "1.0.0")]
     [RequireModule(typeof(GranularPermissions))]
     [RequireModule(typeof(PlaceholderLib))]
-    public class AprilsChat : BattleBitModule
-    {
+    public class AprilsChat : BattleBitModule {
         public AprilsChatConfiguration Configuration { get; set; } = null!;
 
         [ModuleReference]
         public GranularPermissions GranularPermissions { get; set; } = null!;
 
-        public override async Task<bool> OnPlayerTypedMessage(RunnerPlayer player, ChatChannel channel, string msg)
-        {
+        public override async Task<bool> OnPlayerTypedMessage(RunnerPlayer player, ChatChannel channel, string msg) {
             return true;
         }
-        
-        public List<string> HasSpecialChat(RunnerPlayer player, ChatData chatData)
-        {
+
+        public List<string> HasSpecialChat(RunnerPlayer player, ChatData chatData) {
             List<string> result = new();
             string[] playerGroups = GranularPermissions.ServerConfiguration.PlayerGroups.ContainsKey(player.SteamID) ? GranularPermissions.ServerConfiguration.PlayerGroups[player.SteamID].ToArray() : Array.Empty<string>();
 
-            foreach (KeyValuePair<string, string> pairs in chatData.Required)
-            {
+            foreach (KeyValuePair<string, string> pairs in chatData.Required) {
                 bool groupFound = playerGroups.Where(group => pairs.Key.ToLower().Equals($"group.{group.ToLower()}")).Count() > 0;
 
                 if (groupFound)
@@ -41,9 +36,8 @@ namespace BBRModules
         }
     }
 
-    public class AprilsChatConfiguration : ModuleConfiguration
-    {
-        public string DefaultNameColor = "{SquadOrTeamColor}";
+    public class AprilsChatConfiguration : ModuleConfiguration {
+        public string DefaultNameColor { get; set; } = "{SquadOrTeamColor}";
         public string MessageFormat { get; set; } = "{Prefix}{Tag}{NameColor PlayerName /}{TeamAndSquad}{Suffix}: {!Message}";
         public ChatData Prefixes { get; set; } = new();
         public ChatData Suffixes { get; set; } = new();
@@ -55,18 +49,16 @@ namespace BBRModules
         };
     }
 
-    public class ChatData
-    {
+    public class ChatData {
         public Dictionary<string, string> Required { get; set; } = new()
-        { 
+        {
             { "7656119xxxxxxx", "ValueToGiveForSteamID"},
             { "Group.GroupName", "ValueToGiveForGroup"},
             { "Permission", "ValueToGiveForPermission"},
         };
     }
 
-    public enum SpecialChatType
-    {
+    public enum SpecialChatType {
         Prefix,
         Suffix,
         Tag,

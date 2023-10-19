@@ -8,15 +8,13 @@ namespace BattleBitBaseModules;
 
 [Module("Configure the loading screen text of your server", "1.0.0")]
 [RequireModule(typeof(PlaceholderLib))]
-public class LoadingScreenText : BattleBitModule
-{
+public class LoadingScreenText : BattleBitModule {
     [ModuleReference]
     public PlaceholderLib PlaceholderLib { get; set; } = null!;
 
     public LoadingScreenTextConfiguration Configuration { get; set; }
 
-    public override Task OnConnected()
-    {
+    public override Task OnConnected() {
         string LoadingText = new PlaceholderLib(Configuration.LoadingScreenText)
             .AddParam("serverName", Server.ServerName)
             .AddParam("playerCount", Server.AllPlayers.Count())
@@ -29,8 +27,7 @@ public class LoadingScreenText : BattleBitModule
         return Task.CompletedTask;
     }
 
-    public override Task OnPlayerConnected(RunnerPlayer player)
-    {
+    public override Task OnPlayerConnected(RunnerPlayer player) {
         int playerCount = Server.AllPlayers.Count();
         string LoadingText = new PlaceholderLib(Configuration.LoadingScreenText)
             .AddParam("serverName", Server.ServerName)
@@ -53,8 +50,7 @@ public class LoadingScreenText : BattleBitModule
         return Task.CompletedTask;
     }
 
-    public override Task OnPlayerDisconnected(RunnerPlayer player)
-    {
+    public override Task OnPlayerDisconnected(RunnerPlayer player) {
         string LoadingText = new PlaceholderLib(Configuration.LoadingScreenText)
             .AddParam("serverName", Server.ServerName)
             .AddParam("playerCount", Server.CurrentPlayerCount + " (+" + Server.InQueuePlayerCount + ")")
@@ -66,8 +62,7 @@ public class LoadingScreenText : BattleBitModule
         return Task.CompletedTask;
     }
 
-    public override Task OnGameStateChanged(GameState oldState, GameState newState)
-    {
+    public override Task OnGameStateChanged(GameState oldState, GameState newState) {
         string LoadingText = new PlaceholderLib(Configuration.LoadingScreenText)
             .AddParam("serverName", Server.ServerName)
             .AddParam("playerCount", Server.CurrentPlayerCount + " (+" + Server.InQueuePlayerCount + ")")
@@ -80,8 +75,7 @@ public class LoadingScreenText : BattleBitModule
     }
 }
 
-public class LoadingScreenTextConfiguration : ModuleConfiguration
-{
+public class LoadingScreenTextConfiguration : ModuleConfiguration {
     public string LoadingScreenText { get; set; } = "{#ffaaaa}Welcome to {/}{serverName}{#ffaaaa}!\n" +
         "We are currently playing {/}{gamemode}{#ffaaaa} on {/}{map}{#ffaaaa} with {/}{playerCount}{#ffaaaa}/{/}{maxPlayers}{#ffaaaa}!" +
         "\nEnjoy your stay!";

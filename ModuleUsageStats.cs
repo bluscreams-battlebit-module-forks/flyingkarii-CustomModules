@@ -1,3 +1,4 @@
+using BBRAPIModules;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
@@ -11,7 +12,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using BBRAPIModules;
 
 namespace DevMinersBBModules;
 
@@ -21,23 +21,20 @@ namespace DevMinersBBModules;
 ///   Email: devminer@devminer.xyz
 ///   Discord: @anna_devminer
 [Module("Uploads the currently loaded module list to a telemetry server.", "2.0.0")]
-public class ModuleUsageStats : BattleBitModule
-{
+public class ModuleUsageStats : BattleBitModule {
     private static Client? _client;
 
     // "Official" server, operated by @anna_devminer
     private const string Endpoint = "raw.devminer.xyz:65502";
 
-    public override void OnModuleUnloading()
-    {
+    public override void OnModuleUnloading() {
         if (_client is null) return;
 
         _client.Stop();
         _client = null;
     }
 
-    private class AppSettings
-    {
+    private class AppSettings {
         public string? ModulesPath { get; set; }
         public List<string>? Modules { get; set; }
     }
@@ -45,8 +42,7 @@ public class ModuleUsageStats : BattleBitModule
     private static IEnumerable<FileInfo> GetModuleFilesFromFolder(DirectoryInfo directory) =>
         directory.GetFiles("*.cs", SearchOption.TopDirectoryOnly).ToList();
 
-    private static IEnumerable<FileInfo> GetModuleFiles()
-    {
+    private static IEnumerable<FileInfo> GetModuleFiles() {
         var moduleFiles = new List<FileInfo>();
         var appSettings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText("appsettings.json"));
 
@@ -60,8 +56,7 @@ public class ModuleUsageStats : BattleBitModule
         return moduleFiles;
     }
 
-    private static string? GetVersionFromFile(FileSystemInfo file)
-    {
+    private static string? GetVersionFromFile(FileSystemInfo file) {
         var text = File.ReadAllText(file.FullName);
         var regex = new Regex(@"\[Module\("".*"", ""(.*)""\)\]");
         var matches = regex.Matches(text);
@@ -71,8 +66,7 @@ public class ModuleUsageStats : BattleBitModule
         return null;
     }
 
-    private static string GetHashFromFile(FileInfo file)
-    {
+    private static string GetHashFromFile(FileInfo file) {
         using var md5 = MD5.Create();
         using var stream = file.OpenRead();
 
@@ -81,9 +75,9 @@ public class ModuleUsageStats : BattleBitModule
     }
 
     private static List<ModuleInfo> GetModuleInfoFromFiles(IEnumerable<FileInfo> files) => (from file in files
-        where file.Extension.ToLowerInvariant() == ".cs"
-        select new ModuleInfo(name: Path.GetFileNameWithoutExtension(file.Name),
-            version: GetVersionFromFile(file) ?? "Unknown", hash: GetHashFromFile(file))).ToList();
+                                                                                            where file.Extension.ToLowerInvariant() == ".cs"
+                                                                                            select new ModuleInfo(name: Path.GetFileNameWithoutExtension(file.Name),
+                                                                                                version: GetVersionFromFile(file) ?? "Unknown", hash: GetHashFromFile(file))).ToList();
 
     private static void Initialize() {
         if (_client is not null) return;
@@ -107,8 +101,7 @@ public class ModuleUsageStats : BattleBitModule
 
 #region networking
 
-internal class Client
-{
+internal class Client {
     private TcpClient? _socket;
     private readonly Uri _uri;
     private readonly List<ModuleInfo> _modules;
@@ -118,16 +111,13 @@ internal class Client
 
     private event DisconnectHandler? Disconnected;
 
-    public Client(Uri uri, List<ModuleInfo> modules)
-    {
+    public Client(Uri uri, List<ModuleInfo> modules) {
         _uri = uri;
         _modules = modules;
     }
 
-    public Task Start()
-    {
-        Disconnected += () =>
-        {
+    public Task Start() {
+        Disconnected += () => {
             var rand = new Random();
             var delay = rand.Next(5000, 10000);
 
@@ -139,19 +129,15 @@ internal class Client
         return _init();
     }
 
-    private async Task _init()
-    {
+    private async Task _init() {
         _connectionCancellation = new CancellationTokenSource();
         _connectionCancellation.Token.Register(OnSocketDisconnectedCleanup);
 
         _socket = new TcpClient();
 
-        try
-        {
+        try {
             await _socket.ConnectAsync(_uri.Host, _uri.Port);
-        }
-        catch (SocketException e)
-        {
+        } catch (SocketException e) {
             _connectionCancellation.Cancel();
             return;
         }
@@ -161,8 +147,7 @@ internal class Client
         Task.Run(ReadLoop, _connectionCancellation.Token);
     }
 
-    private void OnSocketDisconnectedCleanup()
-    {
+    private void OnSocketDisconnectedCleanup() {
         if (_socket is null) return;
 
         _socket?.Dispose();
@@ -173,8 +158,7 @@ internal class Client
 
     public void Stop() => _connectionCancellation?.Cancel();
 
-    private async Task SendPacket(IPacket packet)
-    {
+    private async Task SendPacket(IPacket packet) {
         if (_connectionCancellation is null || _connectionCancellation.IsCancellationRequested || _socket is null)
             return;
 
@@ -183,19 +167,16 @@ internal class Client
         await s.WriteAsync(p.Encode(), _connectionCancellation.Token);
     }
 
-    private async Task ReadLoop()
-    {
+    private async Task ReadLoop() {
         var buffer = new byte[4096];
 
-        while (true)
-        {
+        while (true) {
             if (_connectionCancellation is null || _connectionCancellation.IsCancellationRequested || _socket is null)
                 return;
 
             var s = _socket.GetStream();
             var n = await s.ReadAsync(buffer, 0, buffer.Length, _connectionCancellation.Token);
-            if (n <= 0)
-            {
+            if (n <= 0) {
                 _connectionCancellation.Cancel();
                 return;
             }
@@ -212,26 +193,23 @@ internal class Client
             var data = new byte[n - WrappedPacket.DataLengthSize];
             Array.Copy(buffer, WrappedPacket.DataLengthSize, data, 0, data.Length);
 
-            switch (packetType)
-            {
-                case PacketType.HandshakeResponsePacket:
-                {
-                    var response = HandshakeResponsePacket.Decode(data);
+            switch (packetType) {
+                case PacketType.HandshakeResponsePacket: {
+                        var response = HandshakeResponsePacket.Decode(data);
 
-                    using var h = new HMACSHA256(response.Key);
-                    var hash = h.ComputeHash(Encoding.UTF8.GetBytes(string.Join("", _modules)));
+                        using var h = new HMACSHA256(response.Key);
+                        var hash = h.ComputeHash(Encoding.UTF8.GetBytes(string.Join("", _modules)));
 
-                    await SendPacket(new StartRequestPacket(hash));
+                        await SendPacket(new StartRequestPacket(hash));
 
-                    break;
-                }
+                        break;
+                    }
 
-                case PacketType.StartResponsePacket:
-                {
-                    Task.Run(PingLoop, _connectionCancellation.Token);
+                case PacketType.StartResponsePacket: {
+                        Task.Run(PingLoop, _connectionCancellation.Token);
 
-                    break;
-                }
+                        break;
+                    }
 
                 case PacketType.HandshakeRequestPacket:
                 case PacketType.StartRequestPacket:
@@ -243,10 +221,8 @@ internal class Client
         }
     }
 
-    private async Task PingLoop()
-    {
-        while (true)
-        {
+    private async Task PingLoop() {
+        while (true) {
             if (_connectionCancellation is { IsCancellationRequested: true }) return;
 
             await SendPacket(new HeartbeatRequestPacket());
@@ -256,14 +232,12 @@ internal class Client
     }
 }
 
-internal readonly struct ModuleInfo
-{
+internal readonly struct ModuleInfo {
     private readonly string _name;
     private readonly string _version;
     private readonly string _hash;
 
-    public ModuleInfo(string name, string version, string hash)
-    {
+    public ModuleInfo(string name, string version, string hash) {
         _name = name;
         _version = version;
         _hash = hash;
@@ -276,8 +250,7 @@ internal readonly struct ModuleInfo
         Utils.EncodedStringLength(_version) +
         Utils.EncodedStringLength(_hash);
 
-    public byte[] Encode()
-    {
+    public byte[] Encode() {
         var buf = new byte[GetEncodedLength()];
 
         var buf2 = Utils.EncodeString(_name);
@@ -295,15 +268,13 @@ internal readonly struct ModuleInfo
     }
 }
 
-internal static class Utils
-{
+internal static class Utils {
     internal static void Log(object msg) => Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]  ModuleUsageStats > {msg}");
 
 
     internal static int EncodedStringLength(string s) => 2 + Encoding.UTF8.GetByteCount(s);
 
-    internal static byte[] EncodeString(string s)
-    {
+    internal static byte[] EncodeString(string s) {
         var len = Encoding.UTF8.GetByteCount(s);
         var buf = new byte[2 + len];
 
@@ -316,8 +287,7 @@ internal static class Utils
 
 #region packets
 
-internal enum PacketType : byte
-{
+internal enum PacketType : byte {
     HandshakeRequestPacket = 1,
     HandshakeResponsePacket = 2,
     StartRequestPacket = 3,
@@ -325,14 +295,12 @@ internal enum PacketType : byte
     HeartbeatRequestPacket = 5
 }
 
-internal interface IPacket
-{
+internal interface IPacket {
     public PacketType Type();
     public byte[] Encode();
 }
 
-internal class WrappedPacket
-{
+internal class WrappedPacket {
     public const int DataLengthSize = 2;
     public const int PacketTypeLength = 1;
 
@@ -340,8 +308,7 @@ internal class WrappedPacket
 
     public WrappedPacket(IPacket inner) => Inner = inner;
 
-    public byte[] Encode()
-    {
+    public byte[] Encode() {
         var inner = Inner.Encode();
 
         var dataLength = inner.Length;
@@ -357,15 +324,13 @@ internal class WrappedPacket
     }
 }
 
-internal class HandshakeRequestPacket : IPacket
-{
+internal class HandshakeRequestPacket : IPacket {
     private List<ModuleInfo> Modules { get; }
 
     public HandshakeRequestPacket(List<ModuleInfo> modules) => Modules = modules;
     public PacketType Type() => PacketType.HandshakeRequestPacket;
 
-    public byte[] Encode()
-    {
+    public byte[] Encode() {
         var moduleCount = Modules.Count;
         var length = 2 + Modules.Sum(module => module.GetEncodedLength());
 
@@ -375,8 +340,7 @@ internal class HandshakeRequestPacket : IPacket
         BinaryPrimitives.WriteUInt16BigEndian(buf, (ushort)moduleCount);
         offset += 2;
 
-        foreach (var module in Modules)
-        {
+        foreach (var module in Modules) {
             var encoded = module.Encode();
             encoded.CopyTo(buf, offset);
             offset += encoded.Length;
@@ -386,14 +350,12 @@ internal class HandshakeRequestPacket : IPacket
     }
 }
 
-internal class HandshakeResponsePacket
-{
+internal class HandshakeResponsePacket {
     public byte[] Key { get; }
 
     private HandshakeResponsePacket(byte[] key) => Key = key;
 
-    public static HandshakeResponsePacket Decode(byte[] buf)
-    {
+    public static HandshakeResponsePacket Decode(byte[] buf) {
         var key = new byte[32];
         Array.Copy(buf, 1, key, 0, buf.Length - 1);
 
@@ -401,16 +363,14 @@ internal class HandshakeResponsePacket
     }
 }
 
-internal class StartRequestPacket : IPacket
-{
+internal class StartRequestPacket : IPacket {
     private readonly byte[] _hmac;
     public StartRequestPacket(byte[] hmac) => _hmac = hmac;
     public PacketType Type() => PacketType.StartRequestPacket;
     public byte[] Encode() => _hmac;
 }
 
-internal class HeartbeatRequestPacket : IPacket
-{
+internal class HeartbeatRequestPacket : IPacket {
     public PacketType Type() => PacketType.HeartbeatRequestPacket;
     public byte[] Encode() => Array.Empty<byte>();
 }

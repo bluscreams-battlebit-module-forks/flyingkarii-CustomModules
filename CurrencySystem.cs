@@ -1,53 +1,44 @@
 using BattleBitAPI.Common;
-using BattleBitAPI.Common.Threading;
 using BattleBitAPI.Features;
 using BBRAPIModules;
-using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BBRModules
-{
+namespace BBRModules {
     [Module("A module with a currency system, including saving, loading, and more. Uses SQLite.", "1.0.0")]
     [RequireModule(typeof(PlaceholderLib))]
-    public class CurrencySystem : BattleBitModule
-    {
+    public class CurrencySystem : BattleBitModule {
         public static CurrencyConfiguration Configuration { get; set; } = null!;
         public CurrencyDatabase CurrencyDatabase { get; set; }
         public List<CurrencyPlayer> CurrencyPlayers { get; private set; }
         public List<CurrencyPlayer> TeamACurrencyPlayers { get => CurrencyPlayers.Where((p) => p.Player.Team == Team.TeamA).ToList(); }
         public List<CurrencyPlayer> TeamBCurrencyPlayers { get => CurrencyPlayers.Where((p) => p.Player.Team == Team.TeamB).ToList(); }
 
-        public override async Task OnConnected()
-        {
+        public override async Task OnConnected() {
             CurrencyPlayers = new();
 
             CurrencyDatabase = new();
             await CurrencyDatabase.Open();
             await CurrencyDatabase.CreateCurrencyTable();
 
-            lock (Server.AllPlayers)
-            {
-                foreach (RunnerPlayer player in Server.AllPlayers)
-                {
+            lock (Server.AllPlayers) {
+                foreach (RunnerPlayer player in Server.AllPlayers) {
                     CurrencyPlayer currencyPlayer = new(this, player);
                     CurrencyPlayers.Add(currencyPlayer);
                 }
             }
         }
 
-        public override Task OnPlayerConnected(RunnerPlayer player)
-        {
+        public override Task OnPlayerConnected(RunnerPlayer player) {
             CurrencyPlayer currencyPlayer = new(this, player);
             CurrencyPlayers.Add(currencyPlayer);
             return Task.CompletedTask;
         }
 
-        public override Task OnPlayerDisconnected(RunnerPlayer player)
-        {
+        public override Task OnPlayerDisconnected(RunnerPlayer player) {
             CurrencyPlayers.RemoveAll((p) => p.Player.SteamID == player.SteamID);
             return Task.CompletedTask;
         }
@@ -55,14 +46,12 @@ namespace BBRModules
         public CurrencyPlayer GetCurrencyPlayer(RunnerPlayer player) => CurrencyPlayers.Where(p => p.Player.SteamID == player.SteamID).Single();
     }
 
-    public class CurrencyPlayer
-    {
+    public class CurrencyPlayer {
         public RunnerPlayer Player;
         public CurrencySystem System;
         public int CurrencyAmount;
 
-        public CurrencyPlayer(CurrencySystem system, RunnerPlayer player)
-        {
+        public CurrencyPlayer(CurrencySystem system, RunnerPlayer player) {
             Player = player;
             System = system;
 
@@ -82,8 +71,7 @@ namespace BBRModules
             System.CurrencyDatabase.OnChangedEvent += OnChanged;
         }
 
-        public CurrencyPlayer Set(int newAmount)
-        {
+        public CurrencyPlayer Set(int newAmount) {
             CurrencyAmount = newAmount;
 
             CurrencyChangedArgs args = new();
@@ -96,8 +84,7 @@ namespace BBRModules
 
         public int GetCurrency() => CurrencyAmount;
 
-        public CurrencyPlayer Increment(int amount)
-        {
+        public CurrencyPlayer Increment(int amount) {
             CurrencyAmount += amount;
 
             CurrencyChangedArgs args = new();
@@ -108,8 +95,7 @@ namespace BBRModules
             return this;
         }
 
-        public CurrencyPlayer Decrement(int amount)
-        {
+        public CurrencyPlayer Decrement(int amount) {
             CurrencyAmount -= amount;
 
             CurrencyChangedArgs args = new();
@@ -120,8 +106,7 @@ namespace BBRModules
             return this;
         }
 
-        public CurrencyPlayer Multiply(int multiplicand)
-        {
+        public CurrencyPlayer Multiply(int multiplicand) {
             CurrencyAmount *= multiplicand;
 
             CurrencyChangedArgs args = new();
@@ -132,8 +117,7 @@ namespace BBRModules
             return this;
         }
 
-        public CurrencyPlayer Divide(int divisor)
-        {
+        public CurrencyPlayer Divide(int divisor) {
             CurrencyAmount /= divisor;
 
             CurrencyChangedArgs args = new();
@@ -144,14 +128,12 @@ namespace BBRModules
             return this;
         }
 
-        public void OnChanged(object? e, CurrencyChangedArgs args)
-        {
+        public void OnChanged(object? e, CurrencyChangedArgs args) {
             Console.WriteLine("Updated!");
             CurrencyAmount = args.NewValue;
         }
 
-        public async Task SaveAsync()
-        {
+        public async Task SaveAsync() {
             SqliteConnection connection = System.CurrencyDatabase.GetConnection();
             SqliteCommand command = new("UPDATE currencyStore SET currency = $amount WHERE steamId=$steamId", connection);
             command.Parameters.AddWithValue("$steamId", Player.SteamID);
@@ -159,25 +141,21 @@ namespace BBRModules
             await command.ExecuteNonQueryAsync();
         }
 
-        public void Destroy()
-        {
+        public void Destroy() {
             System.CurrencyDatabase.OnChangedEvent -= OnChanged;
         }
     }
 
-    public class CurrencyConfiguration : ModuleConfiguration
-    {
+    public class CurrencyConfiguration : ModuleConfiguration {
         public string CurrencyFormat { get; set; } = "{amount} {currency}";
         public string Currency { get; set; } = "points";
         public int StartingAmount { get; set; } = 0;
     }
 
-    public class CurrencyDatabase
-    {
+    public class CurrencyDatabase {
         public static SqliteConnection Connection { get; private set; } = null!;
 
-        public CurrencyDatabase()
-        {
+        public CurrencyDatabase() {
             string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "data");
             string path = Path.Combine(directoryPath, "CurrencySystem.db");
 
@@ -188,20 +166,17 @@ namespace BBRModules
                 File.Create(path);
         }
 
-        public async Task CreateCurrencyTable()
-        {
+        public async Task CreateCurrencyTable() {
             var cmd = Connection.CreateCommand();
             cmd.CommandText =
                 @"CREATE TABLE IF NOT EXISTS currencyStore (steamId INT PRIMARY KEY, currency INT)";
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task Open()
-        {
+        public async Task Open() {
             string path = Path.Combine(Directory.GetCurrentDirectory(), "Data", "CurrencySystem.db");
 
-            string connectionString = new SqliteConnectionStringBuilder()
-            {
+            string connectionString = new SqliteConnectionStringBuilder() {
                 Mode = SqliteOpenMode.ReadWriteCreate,
                 DataSource = path,
                 Cache = SqliteCacheMode.Shared
@@ -211,22 +186,18 @@ namespace BBRModules
             await Connection.OpenAsync();
         }
 
-        public async Task Close()
-        {
+        public async Task Close() {
             await Connection.CloseAsync();
         }
 
-        public SqliteConnection GetConnection()
-        {
+        public SqliteConnection GetConnection() {
             return Connection;
         }
 
-        public virtual void OnChanged(CurrencyChangedArgs e)
-        {
+        public virtual void OnChanged(CurrencyChangedArgs e) {
             EventHandler<CurrencyChangedArgs> handler = OnChangedEvent;
 
-            if (handler != null)
-            {
+            if (handler != null) {
                 handler(this, e);
             }
         }
@@ -234,8 +205,7 @@ namespace BBRModules
         public event EventHandler<CurrencyChangedArgs> OnChangedEvent;
     }
 
-    public class CurrencyChangedArgs
-    {
+    public class CurrencyChangedArgs {
         public int NewValue { get; set; }
     }
 }
