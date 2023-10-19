@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace BBRModules {
+
     [Module("A module made to handle team limits and team swapping.", "1.0.0")]
     [RequireModule(typeof(PlaceholderLib))]
     public class TeamLimit : BattleBitModule {
@@ -38,7 +39,6 @@ namespace BBRModules {
 
         [CommandCallback("balance", Description = "Force balance the teams.", Permissions = new[] { "TeamLimit.Balance" })]
         public void BalanceCommand(RunnerPlayer player) {
-
         }
 
         private Team GetBiggestTeam() {
@@ -65,16 +65,21 @@ namespace BBRModules {
         }
 
         private int GetTeamPlayerCount(Team team) => team == Team.TeamA ? Server.AllTeamAPlayers.Count() : Server.AllTeamBPlayers.Count();
+
         private int GetPlayersOnline() => Server.AllPlayers.Count();
     }
 
     public class TeamLimitConfiguration : ModuleConfiguration {
+
         // Do not allow anyone to swap, whatsoever.
         public bool DenyAllTeamSwapping { get; set; } = false;
+
         // How many players over the limit (half the number of players online) would you allow? (e.g. player count is 32, limit is 2, so team limit is now 34)
         public int ExtraPlayerCount { get; set; } = 2;
+
         // The message to send when a player tries to swap to a team that is full (DenyAllTeamSwapping is false)
         public string TeamFullMessage { get; set; } = "{#ffaaaa}[SERVER]{/} You cannot swap teams as it is full! (Limit: {#ffaaaa}{maxPlayers}{/})";
+
         // The message to send when a player tries to change teams (DenyAllTeamSwapping is true)
         public string NoSwappingMessage { get; set; } = "{#ffaaaa}[SERVER]{/} Swapping teams is disabled on this server.";
 

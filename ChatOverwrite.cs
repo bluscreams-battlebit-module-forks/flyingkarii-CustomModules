@@ -97,6 +97,7 @@ public class ChatOverwrite : BattleBitModule {
 }
 
 public class ChatOverwriteConfiguration : ModuleConfiguration {
+
     public Dictionary<string, OverwriteMessage> Overwrites { get; set; } = new()
     {
         { "ChatOverwrite.Rainbow", new("{5}{2} : <color=\"{3}\">{4}", new string[] { "red", "orange", "yellow", "green", "blue", "purple" }) },

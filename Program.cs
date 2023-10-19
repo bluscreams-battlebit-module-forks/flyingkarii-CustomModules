@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 
 namespace BBRModules {
+
     public class Program {
+
         public static void Main() {
             List<string> gradient = GetGradients("#ff0000", "#0000ff", 10);
             Console.WriteLine(string.Join(", ", gradient));

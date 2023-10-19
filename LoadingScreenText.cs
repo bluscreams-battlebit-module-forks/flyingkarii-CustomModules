@@ -9,6 +9,7 @@ namespace BattleBitBaseModules;
 [Module("Configure the loading screen text of your server", "1.0.0")]
 [RequireModule(typeof(PlaceholderLib))]
 public class LoadingScreenText : BattleBitModule {
+
     [ModuleReference]
     public PlaceholderLib PlaceholderLib { get; set; } = null!;
 
@@ -76,9 +77,11 @@ public class LoadingScreenText : BattleBitModule {
 }
 
 public class LoadingScreenTextConfiguration : ModuleConfiguration {
+
     public string LoadingScreenText { get; set; } = "{#ffaaaa}Welcome to {/}{serverName}{#ffaaaa}!\n" +
         "We are currently playing {/}{gamemode}{#ffaaaa} on {/}{map}{#ffaaaa} with {/}{playerCount}{#ffaaaa}/{/}{maxPlayers}{#ffaaaa}!" +
         "\nEnjoy your stay!";
+
     public string WelcomeText { get; set; } = "{#ffaaaa}Welcome to {/}{serverName}{#ffaaaa}!\n" +
         "We are currently playing {/}{gamemode}{#ffaaaa} on {/}{map}{#ffaaaa} with {/}{playerCount}{#ffaaaa}/{/}{maxPlayers}{#ffaaaa}!" +
         "\nEnjoy your stay!";

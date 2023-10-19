@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BBRModules {
+
     [Module("A module used to make CurrencyLib additions for GNA.", "1.0.0")]
     [RequireModule(typeof(CurrencySystem))]
     public class GNACurrency : BattleBitModule {
@@ -35,12 +36,16 @@ namespace BBRModules {
             switch (value) {
                 case < 4:
                     return value * 1.25;
+
                 case >= 4 and < 8:
                     return value * 1.65;
+
                 case >= 8 and < 12:
                     return value * 1.5;
+
                 case >= 12 and < 20:
                     return value * 2.5;
+
                 case >= 20:
                     return value * 3;
             }

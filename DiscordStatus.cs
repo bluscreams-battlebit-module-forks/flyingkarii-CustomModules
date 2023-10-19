@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace BattleBitAPI.Features {
+
     [RequireModule(typeof(PlaceholderLib))]
     [Module("Connects each server to a Discord Bot, and updates the Discord Bot's status with the server's player-count and map information.", "1.3")]
     public class DiscordStatus : BattleBitModule {
@@ -30,6 +31,7 @@ namespace BattleBitAPI.Features {
             Task.Run(SendChatMessages).ContinueWith(t => Console.WriteLine($"Error sending chat messages {t.Exception}"), TaskContinuationOptions.OnlyOnFaulted);
             return Task.CompletedTask;
         }
+
         private async void UpdateTimer() {
             while (this.IsLoaded && this.Server.IsConnected) {
                 if (discordReady)
@@ -111,7 +113,6 @@ namespace BattleBitAPI.Features {
             try {
                 await discordClient.StopAsync();
             } catch (Exception) {
-
             }
         }
 
@@ -128,7 +129,6 @@ namespace BattleBitAPI.Features {
             try {
                 await discordClient.SetGameAsync(status);
             } catch (Exception) {
-
             }
         }
 
@@ -136,10 +136,13 @@ namespace BattleBitAPI.Features {
             switch (channel) {
                 case ChatChannel.AllChat:
                     return "All Chat";
+
                 case ChatChannel.TeamChat:
                     return "Team Chat";
+
                 case ChatChannel.SquadChat:
                     return "Squad Chat";
+
                 default:
                     return "All Chat";
             }

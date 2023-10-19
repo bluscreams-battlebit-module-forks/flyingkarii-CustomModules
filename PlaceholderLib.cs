@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace BattleBitAPI.Features {
+
     [Module("A library for placeholders. Supports multiple elements and formats rich text.", "1.2.3")]
     public class PlaceholderLib : BattleBitModule {
         private readonly Regex re = new Regex(@"\{([^\}]+)\}", RegexOptions.Compiled);
@@ -97,6 +98,7 @@ namespace BattleBitAPI.Features {
                 case "sup":
                 case "sub":
                     return "<" + str + ">";
+
                 default:
                     return "{" + str + "}";
             }

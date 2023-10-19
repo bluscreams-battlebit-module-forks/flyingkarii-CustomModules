@@ -10,23 +10,29 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BBRModules {
+
     [Module("A module with punishments such as ban and mute.", "1.0.0")]
     [RequireModule(typeof(GranularPermissions))]
     [RequireModule(typeof(CommandHandler))]
     public class Punishments : BattleBitModule {
+
         #region Data files
+
         public static PunishmentsConfiguration Configuration { get; set; }
         public static PunishmentsDatabase Database { get; set; }
         public static SqliteConnection Connection { get; set; }
-        #endregion
+
+        #endregion Data files
 
         #region Modules
+
         [ModuleReference]
         public GranularPermissions GranularPermissions { get; set; } = null!;
 
         [ModuleReference]
         public CommandHandler CommandHandler { get; set; } = null!;
-        #endregion
+
+        #endregion Modules
 
         public override void OnModulesLoaded() {
             CommandHandler.Register(this);
@@ -78,7 +84,7 @@ namespace BBRModules {
             target.Kick(banMessage);
         }
 
-        #endregion
+        #endregion Commands
     }
 
     public class PunishmentsConfiguration : ModuleConfiguration {
@@ -281,7 +287,8 @@ namespace BBRModules {
     }
 
     public class PunishmentsUtils {
-        static Dictionary<string, int> lettersToSeconds = new Dictionary<string, int> {
+
+        private static Dictionary<string, int> lettersToSeconds = new Dictionary<string, int> {
             { "y", 31556952 },
             { "mo", 2629746 },
             { "w", 604800 },
@@ -290,7 +297,7 @@ namespace BBRModules {
             { "m", 60 }
         };
 
-        static Dictionary<string, string> lettersToUnit = new Dictionary<string, string> {
+        private static Dictionary<string, string> lettersToUnit = new Dictionary<string, string> {
             { "y", "year" },
             { "mo", "month" },
             { "w", "week" },

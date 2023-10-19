@@ -6,8 +6,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace BBRModules {
+
     [Module("GNA\'s core library.", "1.0.0")]
     public class GNALib : BattleBitModule {
+
         public short GetPlayerCountInRoleOnTeam(RunnerServer server, Team team, GameRole role) {
             int index = 0;
             short count = 0;
@@ -182,7 +184,6 @@ namespace BBRModules {
             string result = "";
 
             for (int i = 0; i < strings.Length; i++) {
-
                 if (i >= fromIndex) {
                     if (i == strings.Length - 1)
                         separator = "";

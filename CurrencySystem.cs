@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace BBRModules {
+
     [Module("A module with a currency system, including saving, loading, and more. Uses SQLite.", "1.0.0")]
     [RequireModule(typeof(PlaceholderLib))]
     public class CurrencySystem : BattleBitModule {

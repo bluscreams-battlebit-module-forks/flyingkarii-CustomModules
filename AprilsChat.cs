@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace BBRModules {
+
     [Module("A module that manages chat in a simpler way than ChatOverwrite.", "1.0.0")]
     [RequireModule(typeof(GranularPermissions))]
     [RequireModule(typeof(PlaceholderLib))]
@@ -43,6 +44,7 @@ namespace BBRModules {
         public ChatData Suffixes { get; set; } = new();
         public ChatData ChatColors { get; set; } = new();
         public ChatData NameColors { get; set; } = new();
+
         public Dictionary<string, List<string>> SpecialTags { get; set; } = new()
         {
             {"{ff0000}[ATag]{/}", new List<string>() {"7656119xxxxxxx" } }
@@ -50,6 +52,7 @@ namespace BBRModules {
     }
 
     public class ChatData {
+
         public Dictionary<string, string> Required { get; set; } = new()
         {
             { "7656119xxxxxxx", "ValueToGiveForSteamID"},
